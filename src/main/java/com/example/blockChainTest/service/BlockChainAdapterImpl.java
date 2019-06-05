@@ -1,6 +1,7 @@
 package com.example.blockChainTest.service;
 
 import com.example.blockChainTest.generated.SimpleStorage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
@@ -16,18 +17,22 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class BlockChainAdapterImpl implements BlockChainAdapter {
-    private Web3j web3j;
     private static final String INFURA_TOKEN = "https://kovan.infura.io/a5c7f2a097f74bfdb3e001b1fc27cc50";
-    private static final String PASSWORD = "testblockchain";
-    private static final String WALLET_FILE_PATH = "wallet";
     private static final BigInteger GAS_PRICE = BigInteger.valueOf(30_000_000_000L);
     private static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000L);
-    private static final ContractGasProvider contractGasProvider = new StaticGasProvider(GAS_PRICE, GAS_LIMIT);
-    private Map<Integer, CompletableFuture<SimpleStorage>> deployedContractBase = new HashMap<>();
+    @Value("${smart.contract.wallet.file.password}")
+    private String password;
+    @Value("${smart.contract.wallet.file.path}")
+    private String walletFilePath;
     private Integer contractNumberCounter = 0;
+    private ContractGasProvider contractGasProvider;
+    private Web3j web3j;
+    private Map<Integer, CompletableFuture<SimpleStorage>> deployedContractBase;
 
     public BlockChainAdapterImpl() {
         this.web3j = Web3j.build(new HttpService(INFURA_TOKEN));
+        this.deployedContractBase = new HashMap<>();
+        this.contractGasProvider = new StaticGasProvider(GAS_PRICE, GAS_LIMIT);
     }
 
     @Override
@@ -47,7 +52,7 @@ public class BlockChainAdapterImpl implements BlockChainAdapter {
             try {
                 return awaitContract.get().getContractAddress();
             } catch (Exception e) {
-                throw new IllegalStateException("Error while deploying contract");
+                throw new IllegalStateException("Error while deploying contract", e);
             }
         }
         return "Transaction is not complete";
@@ -61,7 +66,7 @@ public class BlockChainAdapterImpl implements BlockChainAdapter {
         try {
             loadContract(contractAddress).set(BigInteger.valueOf(newStoredValue)).send();
         } catch (Exception e) {
-            throw new IllegalStateException("Error while set stored value");
+            throw new IllegalStateException("Error while set stored value", e);
         }
     }
 
@@ -73,7 +78,7 @@ public class BlockChainAdapterImpl implements BlockChainAdapter {
         try {
             return loadContract(contractAddress).get().send();
         } catch (Exception e) {
-            throw new IllegalStateException("Error while get stored value");
+            throw new IllegalStateException("Error while get stored value", e);
         }
     }
 
@@ -83,7 +88,7 @@ public class BlockChainAdapterImpl implements BlockChainAdapter {
 
     private Credentials getCredentials()  {
         try {
-            return WalletUtils.loadCredentials(PASSWORD, WALLET_FILE_PATH);
+            return WalletUtils.loadCredentials(password, walletFilePath);
         } catch (Exception e) {
             throw new IllegalArgumentException("Bad credential", e);
         }
