@@ -17,20 +17,19 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class BlockChainAdapterImpl implements BlockChainAdapter {
-    private static final String INFURA_TOKEN = "https://kovan.infura.io/a5c7f2a097f74bfdb3e001b1fc27cc50";
     private static final BigInteger GAS_PRICE = BigInteger.valueOf(30_000_000_000L);
     private static final BigInteger GAS_LIMIT = BigInteger.valueOf(4_300_000L);
+    private Integer contractNumberCounter = 0;
     @Value("${smart.contract.wallet.file.password}")
     private String password;
     @Value("${smart.contract.wallet.file.path}")
     private String walletFilePath;
-    private Integer contractNumberCounter = 0;
     private ContractGasProvider contractGasProvider;
     private Web3j web3j;
     private Map<Integer, CompletableFuture<SimpleStorage>> deployedContractBase;
 
-    public BlockChainAdapterImpl() {
-        this.web3j = Web3j.build(new HttpService(INFURA_TOKEN));
+    public BlockChainAdapterImpl(@Value("${smart.contract.infura.token}") String infuraToken) {
+        this.web3j = Web3j.build(new HttpService(infuraToken));
         this.deployedContractBase = new HashMap<>();
         this.contractGasProvider = new StaticGasProvider(GAS_PRICE, GAS_LIMIT);
     }
