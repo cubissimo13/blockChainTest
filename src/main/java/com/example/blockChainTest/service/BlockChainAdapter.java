@@ -5,6 +5,7 @@ import java.math.BigInteger;
 public interface BlockChainAdapter {
     String deployContract ();
     String checkContract(Integer contractNumber);
-    void setContractStoredValue(String contractAddress, Integer newStoredValue);
+    String sendTransactionForChangeContractStoredValue(String contractAddress, Integer newStoredValue);
+    String checkTransactionComplete(Integer transactionNumber);
     BigInteger getContractStoredValue(String contractAddress);
 }

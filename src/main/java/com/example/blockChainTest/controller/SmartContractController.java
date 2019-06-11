@@ -40,7 +40,11 @@ public class SmartContractController {
 
     @PostMapping("/setSmartContractValue")
     public String setStoredValue(String contractAddress, Integer newValue) {
-        blockChainAdapter.setContractStoredValue(contractAddress, newValue);
-        return "New value is saved";
+        return blockChainAdapter.sendTransactionForChangeContractStoredValue(contractAddress, newValue);
+    }
+
+    @GetMapping("/checkChangeContractTransaction")
+    public String checkChangeContractTransaction(Integer transactionNumber) {
+        return blockChainAdapter.checkTransactionComplete(transactionNumber);
     }
 }
